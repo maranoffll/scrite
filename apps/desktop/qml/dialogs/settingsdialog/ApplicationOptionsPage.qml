@@ -118,6 +118,36 @@ Item {
             Layout.preferredWidth: (_layout.width-_layout.columnSpacing)/2
             Layout.fillHeight: true
 
+            label: SctLabel { text: "Connectivity" }
+
+            ColumnLayout {
+                width: parent.width
+
+                SctCheckBox {
+                    id: _offlineMode
+
+                    TabSequenceItem.sequence: 17
+                    TabSequenceItem.manager: _tabSequence
+
+                    Layout.fillWidth: true
+                    text: "Offline mode"
+                    checked: Scrite.app.offlineMode
+                    onToggled: Scrite.app.offlineMode = checked
+
+                    ToolTipPopup {
+                        container: _offlineMode
+                        text: "Block app-managed network requests, including update checks, remote URL previews, guide index updates, and online transliteration suggestions. Links open only when you choose them."
+                        visible: _offlineMode.hovered
+                    }
+                }
+            }
+        }
+
+        GroupBox {
+            Layout.alignment: Qt.AlignTop
+            Layout.preferredWidth: (_layout.width-_layout.columnSpacing)/2
+            Layout.fillHeight: true
+
             label: SctLabel { text: "Display" }
             clip: true
 

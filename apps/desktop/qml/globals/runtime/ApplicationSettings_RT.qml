@@ -23,8 +23,6 @@ import "../"
 Settings {
     property int accentColor: Runtime.colors.defaultAccentColor
     property int primaryColor: Runtime.colors.defaultPrimaryColor
-    property int joinDiscordPromptCounter: 0
-
     property bool useCustomPdfPageColor: true
     property color darkModePdfPageColor: "lightgray"
     property color lightModePdfPageColor: "white"

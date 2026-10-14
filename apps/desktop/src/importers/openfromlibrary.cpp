@@ -14,6 +14,7 @@
 ****************************************************************************/
 
 #include "user.h"
+#include "application.h"
 #include "restapicall.h"
 #include "scritedocument.h"
 #include "openfromlibrary.h"
@@ -122,6 +123,9 @@ Library::Library(Library::Type type, QObject *parent) : QAbstractListModel(paren
     this->reload();
 
     connect(RestApi::instance(), &RestApi::sessionTokenAvailable, this, &Library::reload);
+    connect(Application::instance(), &Application::offlineModeChanged, this, [this]() {
+        this->reload();
+    });
 }
 
 Library::~Library() { }
@@ -162,6 +166,11 @@ void Library::reload()
 
 void Library::fetchRecords()
 {
+    if (Application::instance()->offlineMode()) {
+        this->setBusy(false);
+        return;
+    }
+
     if (m_busy || !User::instance()->isLoggedIn()
         || !RestApi::instance()->isSessionTokenAvailable())
         return;
@@ -250,6 +259,13 @@ void LibraryServiceOpenRecordTask::openRecord()
     }
 
 #ifndef SCRITE_FOSS_BUILD
+    if (Application::instance()->offlineMode()) {
+        m_parent->error()->setErrorMessage(
+                QStringLiteral("The online library is unavailable while offline mode is enabled."));
+        QTimer::singleShot(0, this, &LibraryServiceOpenRecordTask::complete);
+        return;
+    }
+
     QNetworkAccessManager &nam = ::LibraryNetworkAccess();
 
     const QJsonObject record = m_library->recordAt(m_index);

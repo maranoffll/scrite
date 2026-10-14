@@ -53,7 +53,8 @@ Item {
 
     property var helpTips: undefined
 
-    property bool allowAppUsage: Scrite.user.loggedIn && Scrite.user.info.hasActiveSubscription
+    property bool allowAppUsage: Scrite.app.fossBuild
+            || (Scrite.user.loggedIn && Scrite.user.info.hasActiveSubscription)
     property bool canShowNotebookInStructure: width > minWindowWidthForShowingNotebookInStructure
     property bool currentUseSoftwareRenderer
     property bool errorWhileActivatingTrial: false
@@ -465,7 +466,7 @@ Item {
         enabled: root.helpTips === undefined
 
         function onLoggedInChanged() {
-            if(Scrite.user.loggedIn) {
+            if(Scrite.user.loggedIn && !Scrite.app.offlineMode && !Scrite.app.fossBuild) {
                 let helpTipsApi = Qt.createQmlObject("import Scrite.App; UserHelpTipsRestApiCall {}", root)
                 helpTipsApi.finished.connect( () => {
                                                   root.helpTips = helpTipsApi.helpTips

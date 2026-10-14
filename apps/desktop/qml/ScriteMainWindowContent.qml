@@ -46,60 +46,6 @@ Item {
 
         spacing: 0
 
-        Loader {
-            id: _promoTextLoader
-
-            Layout.fillWidth: true
-            Layout.preferredHeight: Runtime.idealFontMetrics.lineSpacing * 2
-            active: Scrite.user.promotionText !== ""
-            visible: active
-
-            sourceComponent: Rectangle {
-                id: _promoText
-
-                color: Runtime.colors.accent.c900.background
-
-                RowLayout {
-                    id: _promoTextLayout
-
-                    anchors.centerIn: parent
-
-                    spacing: 10
-
-                    SctText {
-                        text: Scrite.user.promotionText
-                        font.pointSize: Runtime.idealFontMetrics.font.pointSize
-                        color: Runtime.colors.accent.c900.text
-                    }
-
-                    SctText {
-                        text: Scrite.user.promotionButton.text
-                        font.pointSize: Runtime.idealFontMetrics.font.pointSize
-                        font.underline: true
-                        color: Runtime.colors.accent.c900.text
-                    }
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-
-                    onClicked: {
-                        const button = Scrite.user.promotionButton
-                        if(button.action === UserMessageButton.UrlAction) {
-                            Qt.openUrlExternally(button.endpoint)
-                        } else if(button.action === UserMessageButton.CommandAction) {
-                            UserAccountDialog.handleMessageEndpoint(button.endpoint)
-                        } else {
-                            UserAccountDialog.launch("Subscriptions") // Safe default
-                        }
-
-                        _promoTextLoader.active = false
-                    }
-                }
-            }
-        }
-
         Header {
             id: _header
 
@@ -183,19 +129,11 @@ Item {
         }
 
         function showHelpTip(tipName) {
+            if(tipName === "discord")
+                return
+
             if(Runtime.helpTips && Runtime.helpTips[tipName] !== undefined && !Runtime.helpNotificationSettings.isTipShown(tipName)) {
                 helpTipNotification.createObject(Scrite.window.contentItem, {"tipName": tipName})
-            }
-        }
-
-        function maybeShowDiscordHelpTip() {
-            if(Runtime.helpNotificationSettings.dayZero === "")
-               Runtime.helpNotificationSettings.dayZero = new Date()
-
-            const days = Runtime.helpNotificationSettings.daysSinceZero()
-            if(days >= 2) {
-                if(!Runtime.helpNotificationSettings.isTipShown("discord"))
-                    showHelpTip("discord")
             }
         }
 
@@ -238,8 +176,6 @@ Item {
 
             if(Platform.isMacOSDesktop)
                 Scrite.app.openFileRequest.connect(handleOpenFileRequest)
-
-            Qt.callLater(maybeShowDiscordHelpTip)
 
             if(!Scrite.app.restoreWindowGeometry(Scrite.window, "Workspace"))
                 Runtime.workspaceSettings.screenplayEditorWidth = -1

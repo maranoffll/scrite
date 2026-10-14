@@ -1281,35 +1281,6 @@ protected:
     void setResponse(const QJsonObject &val) override;
 };
 
-class SubscriptionPromotionTextRestApiCall : public RestApiCall
-{
-    Q_OBJECT
-    QML_ELEMENT
-
-public:
-    SubscriptionPromotionTextRestApiCall(QObject *parent = nullptr);
-    ~SubscriptionPromotionTextRestApiCall() override;
-
-    // clang-format off
-    Q_PROPERTY(QString promotionText
-               READ promotionText
-               NOTIFY responseChanged)
-    // clang-format on
-    QString promotionText() const;
-
-    // clang-format off
-    Q_PROPERTY(QJsonObject button
-               READ button
-               NOTIFY responseChanged)
-    // clang-format on
-    QJsonObject button() const;
-
-    // RestApiCall interface
-    Type type() const override { return GET; }
-    bool useSessionToken() const override { return true; }
-    QString api() const override { return "subscription/promotionText"; }
-};
-
 class AbstractScriptalayRestApiCall : public RestApiCall
 {
     Q_OBJECT

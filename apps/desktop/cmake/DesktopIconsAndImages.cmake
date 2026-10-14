@@ -221,7 +221,6 @@ set(SCRITE_DESKTOP_IMAGE_FILES
   "images/feature_locked.png"
   "images/banner_logo_overlay.png"
   "images/homescreen_banner.png"
-  "images/homescreen_scriptalay_banner.png"
   "images/useraccountdialogbg.png"
   "images/prodicon.png"
   "images/exclprodicon.png"

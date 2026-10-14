@@ -15,6 +15,7 @@
 
 #include "networkstatus.h"
 #include "networkaccessmanager.h"
+#include "application.h"
 
 #include <QTimer>
 #include <QNetworkReply>
@@ -24,9 +25,19 @@ NetworkStatus::NetworkStatus(QObject *parent) : QObject { parent }
     m_timer = new QTimer(this);
     m_timer->setSingleShot(true);
     connect(m_timer, &QTimer::timeout, this, &NetworkStatus::pingUrl);
-    m_timer->start(m_interval);
-
     m_networkAccessManager = NetworkAccessManager::instance();
+    if (!Application::instance()->offlineMode())
+        m_timer->start(m_interval);
+    connect(Application::instance(), &Application::offlineModeChanged, this, [this]() {
+        if (Application::instance()->offlineMode()) {
+            m_timer->stop();
+            if (m_reply && !m_reply->isFinished())
+                m_reply->abort();
+            this->setOnline(false);
+        } else {
+            m_timer->start(0);
+        }
+    });
 }
 
 NetworkStatus::~NetworkStatus() { }
@@ -60,6 +71,11 @@ void NetworkStatus::setUrl(const QUrl &val)
 
 void NetworkStatus::pingUrl()
 {
+    if (Application::instance()->offlineMode()) {
+        this->setOnline(false);
+        return;
+    }
+
     if (m_reply) {
         m_reply->deleteLater();
         m_reply = nullptr;
@@ -81,13 +97,19 @@ void NetworkStatus::pingUrl()
 
 void NetworkStatus::onReplyFinished()
 {
-    this->setOnline((m_reply->error() == QNetworkReply::NoError));
+    if (m_reply == nullptr)
+        return;
 
-    m_reply->deleteLater();
+    QNetworkReply *reply = m_reply;
+    m_reply = nullptr;
+    this->setOnline((reply->error() == QNetworkReply::NoError));
+
+    reply->deleteLater();
 
     emit busyChanged();
 
-    m_timer->start(m_interval);
+    if (!Application::instance()->offlineMode())
+        m_timer->start(m_interval);
 }
 
 void NetworkStatus::setNetworkAccessManager(QNetworkAccessManager *val)

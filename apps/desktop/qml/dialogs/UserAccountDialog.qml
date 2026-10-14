@@ -212,7 +212,7 @@ Item {
         readonly property Connections trackApplicationState: Connections {
             property bool tracking: false
 
-            enabled: tracking && Scrite.user.loggedIn
+            enabled: tracking && Scrite.user.loggedIn && !Scrite.app.offlineMode && !Scrite.app.fossBuild
 
             target: Scrite.app
 

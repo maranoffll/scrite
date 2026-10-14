@@ -72,6 +72,7 @@ public:
     Q_SIGNAL void attributesChanged();
 
 private:
+    void refreshAttributes();
     void setStatus(Status val);
     void onHttpRequestFinished();
     void setAttributes(const QJsonObject &val);

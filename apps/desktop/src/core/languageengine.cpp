@@ -1706,6 +1706,9 @@ QString DictpressTransliterationEngine::transliterateWord(const QString &word,
 
 void DictpressTransliterationEngine::requestSuggestions(const QString &word)
 {
+    if (Application::instance()->offlineMode())
+        return;
+
     // Batch requests that come within a 250ms timegap
     if (m_timer == nullptr) {
         m_timer = new QTimer(this);
@@ -1721,6 +1724,9 @@ void DictpressTransliterationEngine::requestSuggestions(const QString &word)
 
 void DictpressTransliterationEngine::sendServiceRequest()
 {
+    if (Application::instance()->offlineMode())
+        return;
+
     if (!m_reply.isNull()) {
         m_reply->disconnect(this);
         m_reply->deleteLater();

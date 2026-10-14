@@ -82,6 +82,9 @@ qint64 getTotalSystemRam()
 
 bool isNetworkAvailable()
 {
+    if (Application::instance() && Application::instance()->offlineMode())
+        return false;
+
     const auto allNetworkInterfaces = QNetworkInterface::allInterfaces();
     foreach (const QNetworkInterface &iface, allNetworkInterfaces) {
         if (iface.flags().testFlag(QNetworkInterface::IsUp)

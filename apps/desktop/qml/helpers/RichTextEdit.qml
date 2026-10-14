@@ -87,6 +87,7 @@ Item {
         backgroundColor: "transparent"
         url: "qrc:/richtexteditor.html"
         webChannel: _scriteWebChannel
+        settings.localContentCanAccessRemoteUrls: !Scrite.app.offlineMode
 
         ActionHandler {
             action: ActionHub.editOptions.find("undo")

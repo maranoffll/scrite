@@ -167,16 +167,6 @@ Item {
                 onClicked: Qt.openUrlExternally(Runtime.userGuidesUrl)
             }
 
-            LinkButton {
-                Layout.fillWidth: true
-
-                text: "Discord Community"
-                color: Qt.rgba(0,0,0,0)
-                textColor: "white"
-                iconSource: "image://icon/dark/qrc:/icons/action/forum.png"
-
-                onClicked: JoinDiscordCommunity.launch()
-            }
         }
 
         SctLabel {
@@ -359,15 +349,6 @@ Item {
                         iconSource: Runtime.themedIcon("qrc:/icons/action/help.png")
 
                         onClicked: Qt.openUrlExternally(Runtime.userGuidesUrl)
-                    }
-
-                    LinkButton {
-                        Layout.fillWidth: true
-
-                        text: "Discord Community"
-                        iconSource: Runtime.themedIcon("qrc:/icons/action/forum.png")
-
-                        onClicked: JoinDiscordCommunity.launch()
                     }
 
                     Item {
@@ -758,6 +739,8 @@ Item {
         LinkButton {
             Layout.fillWidth: true
 
+            visible: !Scrite.app.fossBuild && !Scrite.app.offlineMode
+
             enabled: Runtime.recentFiles.count > 0
             iconSource: Runtime.recentFiles.count === 0 ? Runtime.themedIcon("qrc:/icons/filetype/document.png") : Runtime.themedIcon("qrc:/icons/action/library.png")
             text: Runtime.recentFiles.count === 0 ? "Recent files ..." : "Scriptalay"
@@ -851,6 +834,7 @@ Item {
         id: _quickFileOptions
 
         property bool scriptalayMode: Runtime.recentFiles.count === 0
+                && !Scrite.app.fossBuild && !Scrite.app.offlineMode
 
         ColumnLayout {
             anchors.fill: parent
@@ -1462,8 +1446,6 @@ Item {
         StackPage {
             id: _scriptalayPageItem
 
-            readonly property string bannerImage: "qrc:/images/homescreen_scriptalay_banner.png"
-
             content: ScriptalayPage { }
 
             title: Item {
@@ -1699,7 +1681,8 @@ Item {
 
         function switchMode() {
             Runtime.execLater(root, 500, () => {
-                                  if(root.mode === "Scriptalay") {
+                                  if(root.mode === "Scriptalay"
+                                     && !Scrite.app.fossBuild && !Scrite.app.offlineMode) {
                                       _private.showScriptalay()
                                   } else if(root.mode === "Import") {
                                       _private.showImportPanel()

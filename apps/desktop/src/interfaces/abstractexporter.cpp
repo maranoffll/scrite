@@ -16,6 +16,7 @@
 #include "abstractexporter.h"
 
 #include "user.h"
+#include "application.h"
 #include "scrite.h"
 
 #include <QBuffer>
@@ -52,6 +53,9 @@ QString AbstractExporter::nameFilters() const
 
 bool AbstractExporter::isFeatureEnabled() const
 {
+    if (Application::instance() && Application::instance()->isFOSSBuild())
+        return true;
+
     if (User::instance()->isLoggedIn()) {
         const bool allReportsEnabled = AppFeature::isEnabled(Scrite::ExportFeature);
         const bool thisSpecificReportEnabled =
