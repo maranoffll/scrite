@@ -14,6 +14,7 @@
 ****************************************************************************/
 
 #include "userguidesearchindex.h"
+#include "application.h"
 #include "restapicall.h"
 #include "localstorage.h"
 #include "networkaccessmanager.h"
@@ -30,7 +31,13 @@ static const char *userGuideSearchIndex = "userGuideSearchIndex";
 
 UserGuideSearchIndex::UserGuideSearchIndex(QObject *parent) : QAbstractListModel(parent)
 {
-    QTimer::singleShot(0, this, &UserGuideSearchIndex::checkSearchIndexForUpdates);
+    this->loadSearchIndex();
+    if (!Application::instance()->offlineMode())
+        QTimer::singleShot(0, this, &UserGuideSearchIndex::checkSearchIndexForUpdates);
+    connect(Application::instance(), &Application::offlineModeChanged, this, [this]() {
+        if (!Application::instance()->offlineMode())
+            this->checkSearchIndexForUpdates();
+    });
 }
 
 UserGuideSearchIndex::~UserGuideSearchIndex() { }
@@ -167,6 +174,11 @@ void UserGuideSearchIndex::loadSearchIndex()
 
 void UserGuideSearchIndex::checkSearchIndexForUpdates()
 {
+    if (Application::instance()->offlineMode()) {
+        this->loadSearchIndex();
+        return;
+    }
+
     AppUserGuideSearchIndexRestApiCall *call =
             this->findChild<AppUserGuideSearchIndexRestApiCall *>(QString(),
                                                                   Qt::FindDirectChildrenOnly);
@@ -188,6 +200,14 @@ void UserGuideSearchIndex::onSearchIndexChecked()
             qobject_cast<AppUserGuideSearchIndexRestApiCall *>(this->sender());
     if (call == nullptr)
         return;
+
+    if (Application::instance()->offlineMode() || call->hasError() || !call->hasResponse()) {
+        this->loadSearchIndex();
+        m_busy = false;
+        emit busyChanged();
+        call->deleteLater();
+        return;
+    }
 
     LocalStorage::store(userGuideBaseUrl, call->userGuideBaseUrl());
     LocalStorage::store(userGuideSortOrder, call->userGuideSortOrder());
@@ -220,7 +240,11 @@ void UserGuideSearchIndex::onSearchIndexDownloaded()
 
     QJsonParseError error;
     const QJsonDocument doc = QJsonDocument::fromJson(data, &error);
-    if (error.error != QJsonParseError::NoError) {
+    if (Application::instance()->offlineMode() || error.error != QJsonParseError::NoError) {
+        reply->deleteLater();
+        this->loadSearchIndex();
+        m_busy = false;
+        emit busyChanged();
         return;
     }
 

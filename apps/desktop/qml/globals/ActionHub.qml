@@ -218,7 +218,7 @@ Item {
             readonly property bool visible: false
             readonly property string defaultShortcut: "Ctrl+Shift+O"
 
-            enabled: Runtime.allowAppUsage
+            enabled: Runtime.allowAppUsage && !Scrite.app.fossBuild && !Scrite.app.offlineMode
             objectName: "scriptalayOpen"
             shortcut: defaultShortcut
             text: "Scriptalay"
@@ -2970,48 +2970,48 @@ Item {
         objectName: "userOptions"
 
         Action {
-            readonly property bool nativeVisible: true
+            readonly property bool nativeVisible: !Scrite.app.fossBuild && !Scrite.app.offlineMode
             readonly property var keywords: ["logout", "logs", "activity", "analytics", "telemetry"]
             readonly property string defaultShortcut: "F8"
-            property bool visible: enabled
+            property bool visible: enabled && !Scrite.app.fossBuild && !Scrite.app.offlineMode
 
-            enabled: ActionHandler.canHandle
+            enabled: ActionHandler.canHandle && !Scrite.app.fossBuild && !Scrite.app.offlineMode
             objectName: "userAccount"
             shortcut: defaultShortcut
             text: "User Account"
         }
 
         Action {
-            readonly property bool nativeVisible: true
+            readonly property bool nativeVisible: !Scrite.app.fossBuild && !Scrite.app.offlineMode
             readonly property bool visible: false
             readonly property var keywords: ["plan", "paid", "pay", "purchase", "buy", "license", "pricing", "price", "discount"]
             readonly property string defaultShortcut: "F10"
 
-            enabled: ActionHandler.canHandle
+            enabled: ActionHandler.canHandle && !Scrite.app.fossBuild && !Scrite.app.offlineMode
             objectName: "subscriptions"
             shortcut: defaultShortcut
             text: "Subscriptions"
         }
 
         Action {
-            readonly property bool nativeVisible: true
+            readonly property bool nativeVisible: !Scrite.app.fossBuild && !Scrite.app.offlineMode
             readonly property bool visible: false
             readonly property var keywords: ["device"]
             readonly property string defaultShortcut: "F11"
 
-            enabled: ActionHandler.canHandle
+            enabled: ActionHandler.canHandle && !Scrite.app.fossBuild && !Scrite.app.offlineMode
             objectName: "installations"
             shortcut: defaultShortcut
             text: "Installations"
         }
 
         Action {
-            readonly property bool nativeVisible: true
+            readonly property bool nativeVisible: !Scrite.app.fossBuild && !Scrite.app.offlineMode
             readonly property bool visible: false
             readonly property string defaultShortcut: "F9"
             readonly property var keywords: ["notifications"]
 
-            enabled: ActionHandler.canHandle
+            enabled: ActionHandler.canHandle && !Scrite.app.fossBuild && !Scrite.app.offlineMode
             objectName: "messages"
             shortcut: defaultShortcut
             text: "Messages"

@@ -148,6 +148,16 @@ public:
     bool isFOSSBuild() const;
 
     // clang-format off
+    Q_PROPERTY(bool offlineMode
+               READ offlineMode
+               WRITE setOfflineMode
+               NOTIFY offlineModeChanged)
+    // clang-format on
+    bool offlineMode() const { return m_offlineMode; }
+    void setOfflineMode(bool val);
+    Q_SIGNAL void offlineModeChanged();
+
+    // clang-format off
     Q_PROPERTY(QStringList availableThemes
                READ availableThemes
                CONSTANT )
@@ -249,6 +259,7 @@ private:
     bool m_handleFileOpenEvents = false;
 #endif
     QSettings *m_settings = nullptr;
+    bool m_offlineMode = true;
     QUndoGroup *m_undoGroup = new QUndoGroup(this);
     int m_idealFontPointSize = 10;
     int m_customFontPointSize = 0;

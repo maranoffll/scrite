@@ -289,7 +289,6 @@ set(SCRITE_DESKTOP_SINGLETON_QML_FILES
   "qml/dialogs/ExportConfigurationDialog.qml"
   "qml/dialogs/FontSelectionDialog.qml"
   "qml/dialogs/HomeScreen.qml"
-  "qml/dialogs/JoinDiscordCommunity.qml"
   "qml/dialogs/JumpToSceneNumberDialog.qml"
   "qml/dialogs/LanguageOptionsDialog.qml"
   "qml/dialogs/LegacyDataMigrationDialog.qml"

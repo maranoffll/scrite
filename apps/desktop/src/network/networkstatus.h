@@ -17,6 +17,7 @@
 #define NETWORKSTATUS_H
 
 #include <QObject>
+#include <QPointer>
 #include <QQmlEngine>
 #include <QNetworkAccessManager>
 
@@ -74,7 +75,7 @@ public:
                NOTIFY networkAccessManagerChanged)
     // clang-format on
     void setNetworkAccessManager(QNetworkAccessManager *val);
-    QNetworkAccessManager *networkAccessManager() const { return m_networkAccessManager; }
+    QNetworkAccessManager *networkAccessManager() const { return m_networkAccessManager.data(); }
     Q_SIGNAL void networkAccessManagerChanged();
 
 private:
@@ -89,7 +90,7 @@ private:
     QUrl m_url = QUrl(QStringLiteral("https://1.1.1.1"));
     QTimer *m_timer = nullptr;
     QNetworkReply *m_reply = nullptr;
-    QNetworkAccessManager *m_networkAccessManager = nullptr;
+    QPointer<QNetworkAccessManager> m_networkAccessManager;
 };
 
 #endif // NETWORKSTATUS_H

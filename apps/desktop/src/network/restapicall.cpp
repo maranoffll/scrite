@@ -300,6 +300,15 @@ bool RestApiCall::call()
 
     emit aboutToCall();
 
+    if (Application::instance() && Application::instance()->offlineMode()) {
+        QTimer::singleShot(0, this, [this]() {
+            this->setError(QJsonObject({ { "code", "E_OFFLINE" },
+                                         { "text", "This online feature is unavailable while offline mode is enabled." } }));
+            emit finished();
+        });
+        return true;
+    }
+
 #ifdef SCRITE_FOSS_BUILD
     QTimer::singleShot(0, this, [=]() {
         this->setError(
@@ -432,6 +441,11 @@ void RestApiCall::setError(const QJsonObject &val)
     m_error = val;
 
 #ifndef SCRITE_FOSS_BUILD
+    if (Application::instance() && Application::instance()->offlineMode()) {
+        emit errorChanged();
+        return;
+    }
+
     const QString errorCode = val.value("code").toString();
 
     const bool noApiKey = errorCode == RestApi::E_API_KEY;
@@ -1509,23 +1523,6 @@ void SubscriptionPlanActivationRestApiCall::setResponse(const QJsonObject &val)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-SubscriptionPromotionTextRestApiCall::SubscriptionPromotionTextRestApiCall(QObject *parent)
-    : RestApiCall(parent)
-{
-}
-
-SubscriptionPromotionTextRestApiCall::~SubscriptionPromotionTextRestApiCall() { }
-
-QString SubscriptionPromotionTextRestApiCall::promotionText() const
-{
-    return this->responseData().value("text").toString();
-}
-
-QJsonObject SubscriptionPromotionTextRestApiCall::button() const
-{
-    return this->responseData().value("button").toObject();
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 

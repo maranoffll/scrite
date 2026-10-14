@@ -312,16 +312,6 @@ Item {
                                             font.pointSize: Runtime.minimumFontMetrics.font.pointSize
                                         }
 
-                                        SctLabel {
-                                            text: "ⓘ"
-                                            font.pointSize: Runtime.minimumFontMetrics.font.pointSize
-
-                                            MouseArea {
-                                                anchors.fill: parent
-                                                cursorShape: Qt.PointingHandCursor
-                                                onClicked: JoinDiscordCommunity.launch()
-                                            }
-                                        }
                                     }
                                 }
 

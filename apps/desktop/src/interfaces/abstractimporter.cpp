@@ -14,6 +14,7 @@
 ****************************************************************************/
 
 #include "user.h"
+#include "application.h"
 #include "utils.h"
 #include "scrite.h"
 #include "undoredo.h"
@@ -45,6 +46,9 @@ QString AbstractImporter::nameFilters() const
 
 bool AbstractImporter::isFeatureEnabled() const
 {
+    if (Application::instance() && Application::instance()->isFOSSBuild())
+        return true;
+
     if (User::instance()->isLoggedIn()) {
         const bool allImportersEnabled = AppFeature::isEnabled(Scrite::ImportFeature);
         const bool thisSpecificImporterEnabled = allImportersEnabled

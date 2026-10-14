@@ -35,6 +35,10 @@ AutoUpdate::AutoUpdate(QObject *parent) : QObject(parent)
 {
     // CAPTURE_CALL_GRAPH;
     QTimer::singleShot(1000, this, &AutoUpdate::checkForUpdates);
+    connect(Application::instance(), &Application::offlineModeChanged, this, [this]() {
+        if (!Application::instance()->offlineMode())
+            this->checkForUpdates();
+    });
 }
 
 AutoUpdate::~AutoUpdate() { }
@@ -55,6 +59,9 @@ void AutoUpdate::setUpdateInfo(const QJsonObject &val)
 
 void AutoUpdate::checkForUpdates()
 {
+    if (Application::instance()->offlineMode())
+        return;
+
     AppLatestReleaseRestApiCall *api = new AppLatestReleaseRestApiCall(this);
     api->setAutoDelete(true);
     api->setReportNetworkErrors(false);
@@ -74,6 +81,9 @@ void AutoUpdate::checkForUpdates()
 
 void AutoUpdate::checkForUpdatesAfterSometime()
 {
+    if (Application::instance()->offlineMode())
+        return;
+
     // Check for updates after 1 hour
     QTimer::singleShot(60 * 60 * 1000, this, &AutoUpdate::checkForUpdates);
 }

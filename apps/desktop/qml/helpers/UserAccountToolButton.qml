@@ -30,6 +30,7 @@ Item {
 
     width: 50+15
     height: 50
+    visible: !Scrite.app.fossBuild && !Scrite.app.offlineMode
 
     Item {
         anchors.top: parent.top

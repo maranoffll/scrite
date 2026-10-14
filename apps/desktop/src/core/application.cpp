@@ -146,6 +146,7 @@ Application::Application(int &argc, char **argv, const QVersionNumber &version)
     const QString settingsFile =
             QDir(Application::appDataLocation()).absoluteFilePath("settings.ini");
     m_settings = new QSettings(settingsFile, QSettings::IniFormat, this);
+    m_offlineMode = m_settings->value(QStringLiteral("Network/offlineMode"), true).toBool();
     this->installationId();
     this->installationTimestamp();
     m_settings->setValue(QStringLiteral("Installation/launchCount"), this->launchCounter() + 1);
@@ -503,6 +504,17 @@ bool Application::isFOSSBuild() const
 #else
     return false;
 #endif
+}
+
+void Application::setOfflineMode(bool val)
+{
+    if (m_offlineMode == val)
+        return;
+
+    m_offlineMode = val;
+    if (m_settings)
+        m_settings->setValue(QStringLiteral("Network/offlineMode"), m_offlineMode);
+    emit offlineModeChanged();
 }
 
 const QString Application::versionType = QStringLiteral(SCRITE_VERSION_TYPE);

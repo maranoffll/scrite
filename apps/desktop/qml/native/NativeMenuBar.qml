@@ -306,6 +306,7 @@ Native.MenuBar {
 
     ActionManagerNativeMenu {
         title: "Account"
+        visible: !Scrite.app.fossBuild && !Scrite.app.offlineMode
         actionManager: ActionHub.userOptions
     }
 

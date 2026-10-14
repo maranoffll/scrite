@@ -155,18 +155,6 @@ DialogLauncher {
                                 visible: !Scrite.isFeatureNameEnabled("support/email", _dialog.plan.features)
                             }
 
-                            SctLabel {
-                                text: "ⓘ"
-                                font.pointSize: Runtime.minimumFontMetrics.font.pointSize
-                                visible: !Scrite.isFeatureNameEnabled("support/email", _dialog.plan.features)
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: JoinDiscordCommunity.launch()
-                                }
-                            }
-
                             Item { Layout.fillWidth: true }
                         }
 

@@ -27,7 +27,11 @@
 #include <QNetworkRequest>
 #include <QNetworkAccessManager>
 
-UrlAttributes::UrlAttributes(QObject *parent) : QObject(parent) { }
+UrlAttributes::UrlAttributes(QObject *parent) : QObject(parent)
+{
+    connect(Application::instance(), &Application::offlineModeChanged, this,
+            &UrlAttributes::refreshAttributes);
+}
 
 UrlAttributes::~UrlAttributes() { }
 
@@ -39,14 +43,27 @@ void UrlAttributes::setUrl(const QUrl &val)
     m_url = val;
     emit urlChanged();
 
-    NetworkAccessManager &nam = *NetworkAccessManager::instance();
-    if (!m_reply.isNull())
-        delete m_reply;
+    this->refreshAttributes();
+}
+
+void UrlAttributes::refreshAttributes()
+{
+    if (!m_reply.isNull()) {
+        m_reply->disconnect(this);
+        m_reply->abort();
+        m_reply->deleteLater();
+    }
     m_reply = nullptr;
 
     if (!m_url.isEmpty() && m_url.isValid()) {
         this->setAttributes(this->createDefaultAttributes());
+        if (Application::instance()->offlineMode()) {
+            this->setStatus(Ready);
+            return;
+        }
         this->setStatus(Loading);
+
+        NetworkAccessManager *nam = NetworkAccessManager::instance();
 
         static const QUrl url(
                 QStringLiteral("https://www.scrite.io/helpers/urlattribs/urlattribs.php"));
@@ -57,13 +74,13 @@ void UrlAttributes::setUrl(const QUrl &val)
 
         const QByteArray postDataBytes = postData.toString(QUrl::FullyEncoded).toLatin1();
 
-        m_reply = nam.post(request, postDataBytes);
+        m_reply = nam->post(request, postDataBytes);
         if (m_reply != nullptr) {
             connect(m_reply, &QNetworkReply::finished, this, &UrlAttributes::onHttpRequestFinished);
             connect(m_reply, &QNetworkReply::errorOccurred, this, [=](QNetworkReply::NetworkError) {
                 m_reply->deleteLater();
                 m_reply = nullptr;
-                this->setStatus(Error);
+                this->setStatus(Application::instance()->offlineMode() ? Ready : Error);
             });
         }
     } else {

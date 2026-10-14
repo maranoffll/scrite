@@ -606,12 +606,14 @@ User *User::instance()
 
 #ifndef SCRITE_FOSS_BUILD
     if (firstTime) {
-        if (refreshSessionToken && LocalStorage::load(LocalStorage::loginToken).isValid()) {
+        if (!Application::instance()->offlineMode() && refreshSessionToken
+            && LocalStorage::load(LocalStorage::loginToken).isValid()) {
             SessionNewRestApiCall *api = new SessionNewRestApiCall(theUser);
             if (!api->queue(RestApi::instance()->sessionApiQueue())) {
                 api->deleteLater();
             }
-        } else if (LocalStorage::load(LocalStorage::sessionToken).isValid()) {
+        } else if (!Application::instance()->offlineMode()
+                   && LocalStorage::load(LocalStorage::sessionToken).isValid()) {
             QTimer::singleShot(0, theUser, &User::loadInfoUsingRestApiCall);
         }
 
@@ -629,52 +631,16 @@ User::User(QObject *parent) : QObject(parent)
     connect(this, &User::infoChanged, this, &User::loggedInChanged);
     connect(this, &User::loggedInChanged, this, &User::loadStoredMessages);
     connect(this, &User::messagesChanged, this, &User::storeMessages);
-
-#ifdef SCRITE_FOSS_BUILD
-    m_info.id = QUuid::createUuid().toString();
-    m_info.email = "opensourceuser@scrite.io";
-    m_info.signUpDate = QDateTime::fromString(Application::instance()->buildTimestamp());
-    m_info.timestamp = QDateTime::currentDateTime();
-    m_info.firstName = QStringLiteral("FOSS");
-    m_info.lastName = QStringLiteral("User");
-    m_info.firstName = m_info.firstName + QStringLiteral(" ") + m_info.lastName;
-    m_info.allowedVersionTypes = QStringList() << Application::instance()->versionAsString();
-    m_info.activeInstallationCount = 1;
-    m_info.hasActiveSubscription = true;
-    m_info.hasTrialSubscription = true;
-    m_info.paidSubscriptionCount = 0;
-    m_info.subscribedUntil = QDateTime::currentDateTime().addDays(28);
-    m_info.availableFeatures = QStringList({ "*" });
-
-    UserSubscriptionInfo info;
-    info.id = QUuid::createUuid().toString();
-    info.kind = QStringLiteral("trial");
-    info.from = m_info.signUpDate;
-    info.until = m_info.subscribedUntil;
-    info.isActive = true;
-    info.plan.name = QStringLiteral("foss");
-    info.plan.title = QStringLiteral("FOSS Plan");
-    info.plan.subtitle = QStringLiteral("Based on a FOSS Build from source code.");
-    info.plan.duration = m_info.signUpDate.daysTo(m_info.subscribedUntil);
-    info.plan.features = m_info.availableFeatures;
-    info.plan.featureNote = QStringLiteral("All features available in the source code.");
-    m_info.subscriptions.append(info);
-
-    UserInstallationInfo device;
-    device.id = QUuid::createUuid().toString();
-    device.clientId = Application::instance()->installationId();
-    device.deviceId = Application::instance()->deviceId();
-    device.platform = Utils::Platform::typeString();
-    device.platformVersion = Utils::Platform::osVersionString();
-    device.platformType = Utils::Platform::architectureString();
-    device.hostName = Utils::Platform::hostName();
-    device.appVersion = Application::instance()->versionAsString();
-    device.creationDate = m_info.signUpDate;
-    device.lastActivationDate = m_info.signUpDate;
-    device.lastSessionDate = m_info.signUpDate;
-    device.activated = true;
-    m_info.installations.append(device);
-#endif
+    connect(Application::instance(), &Application::offlineModeChanged, this, [this]() {
+        if (m_checkForMessagesTimer == nullptr)
+            return;
+        if (Application::instance()->offlineMode())
+            m_checkForMessagesTimer->stop();
+        else {
+            m_checkForMessagesTimer->start();
+            this->checkForMessagesNow();
+        }
+    });
 }
 
 User::~User() { }
@@ -693,6 +659,9 @@ bool User::canUseAppVersionType() const
 void User::logActivity2(const QString &activity, const QJsonValue &data)
 {
 #ifndef SCRITE_FOSS_BUILD
+    if (Application::instance()->offlineMode())
+        return;
+
     if (m_info.isValid() && !this->isBusy() && m_info.consentToActivityLog) {
         UserActivityRestApiCall *call = new UserActivityRestApiCall(qApp);
         call->setActivity("desktop/" + activity);
@@ -721,6 +690,9 @@ int User::unreadMessageCount() const
 void User::checkForMessages()
 {
 #ifndef SCRITE_FOSS_BUILD
+    if (Application::instance()->offlineMode())
+        return;
+
     if (!m_checkForMessagesTimer) {
         m_checkForMessagesTimer = new QTimer(this);
         m_checkForMessagesTimer->setInterval(30000);
@@ -747,16 +719,6 @@ void User::markMessagesAsRead()
     if (nrMessages > 0)
         emit messagesChanged();
 #endif
-}
-
-QString User::promotionText() const
-{
-    return m_promotionData.value("text").toString();
-}
-
-UserMessageButton User::promotionButton() const
-{
-    return UserMessageButton(m_promotionData.value("button").toObject());
 }
 
 void User::setInfo(const UserInfo &val)
@@ -787,7 +749,8 @@ void User::setMessages(const QList<UserMessage> &val)
 void User::checkIfSubscriptionIsAboutToExpire()
 {
 #ifndef SCRITE_FOSS_BUILD
-    if (!m_info.isValid() || !m_info.hasActiveSubscription)
+    if (Application::instance()->offlineMode() || !m_info.isValid()
+        || !m_info.hasActiveSubscription)
         return;
 
     const bool alreadyCheckedOnceToday = []() {
@@ -822,6 +785,9 @@ void User::checkIfSubscriptionIsAboutToExpire()
 void User::checkIfInstallationInfoNeedsUpdate()
 {
 #ifndef SCRITE_FOSS_BUILD
+    if (Application::instance()->offlineMode())
+        return;
+
     static int checkCounter = 0;
     if (checkCounter > 0)
         return;
@@ -857,28 +823,6 @@ void User::checkIfInstallationInfoNeedsUpdate()
 #endif
 }
 
-void User::checkForPromotionText()
-{
-#ifndef SCRITE_FOSS_BUILD
-    if (!m_info.isValid())
-        return;
-
-    if (this->findChild<SubscriptionPromotionTextRestApiCall *>(QString(),
-                                                                Qt::FindDirectChildrenOnly))
-        return;
-
-    SubscriptionPromotionTextRestApiCall *call = new SubscriptionPromotionTextRestApiCall(this);
-    connect(call, &SubscriptionPromotionTextRestApiCall::finished, this, [=]() {
-        m_promotionData = call->responseData();
-        emit promotionCallDataChanged();
-        call->deleteLater();
-    });
-    if (!call->call()) {
-        call->deleteLater();
-    }
-#endif
-}
-
 void User::checkIfVersionTypeUseIsAllowed()
 {
     if (Application::versionType.isEmpty() || !m_info.isValid()
@@ -892,10 +836,8 @@ void User::checkIfVersionTypeUseIsAllowed()
 void User::checkForMessagesNow()
 {
 #ifndef SCRITE_FOSS_BUILD
-    if (!this->isLoggedIn())
+    if (Application::instance()->offlineMode() || !this->isLoggedIn())
         return;
-
-    QTimer::singleShot(100, User::instance(), &User::checkForPromotionText);
 
     UserMessagesRestApiCall *api =
             this->findChild<UserMessagesRestApiCall *>(QString(), Qt::FindDirectChildrenOnly);
@@ -1016,6 +958,9 @@ void User::loadInfoFromStorage()
 void User::loadInfoUsingRestApiCall()
 {
 #ifndef SCRITE_FOSS_BUILD
+    if (Application::instance()->offlineMode())
+        return;
+
     UserMeRestApiCall *apiCall =
             this->findChild<UserMeRestApiCall *>(QString(), Qt::FindDirectChildrenOnly);
     if (apiCall)
@@ -1039,12 +984,16 @@ void User::childEvent(QChildEvent *e)
 AppFeature::AppFeature(QObject *parent) : QObject(parent)
 {
     connect(User::instance(), &User::infoChanged, this, &AppFeature::reevaluate);
+    this->reevaluate();
 }
 
 AppFeature::~AppFeature() { }
 
 bool AppFeature::isEnabled(int feature)
 {
+    if (Application::instance() && Application::instance()->isFOSSBuild())
+        return feature >= 0;
+
     if (User::instance()->isLoggedIn() && User::instance()->info().hasActiveSubscription) {
         return feature < 0 ? false
                            : User::instance()->info().isFeatureEnabled(Scrite::AppFeature(feature));
@@ -1055,6 +1004,9 @@ bool AppFeature::isEnabled(int feature)
 
 bool AppFeature::isEnabled(const QString &featureName)
 {
+    if (Application::instance() && Application::instance()->isFOSSBuild())
+        return !featureName.isEmpty();
+
     if (User::instance()->isLoggedIn() && User::instance()->info().hasActiveSubscription) {
         return featureName.isEmpty() ? false
                                      : User::instance()->info().isFeatureNameEnabled(featureName);
@@ -1085,6 +1037,11 @@ void AppFeature::setFeature(int val)
 
 void AppFeature::reevaluate()
 {
+    if (Application::instance() && Application::instance()->isFOSSBuild()) {
+        this->setEnabled(true);
+        return;
+    }
+
     if (User::instance()->isLoggedIn() && User::instance()->info().hasActiveSubscription) {
         const bool flag1 = m_feature < 0
                 ? true

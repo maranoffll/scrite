@@ -262,76 +262,6 @@ DialogLauncher {
                 RowLayout {
                     Layout.alignment: Qt.AlignHCenter
 
-                    Image {
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.preferredWidth: 24
-                        Layout.preferredHeight: 24
-
-                        source: Runtime.themedIcon("qrc:/icons/action/share.png")
-                    }
-
-                    SctLabel {
-                        Layout.alignment: Qt.AlignVCenter
-
-                        font.pointSize: Runtime.idealFontMetrics.font.pointSize
-                        leftPadding: 10; rightPadding: 3
-                        text: "Share Scrite: "
-                    }
-
-                    RowLayout {
-                        spacing: -8
-
-                        SctToolButton {
-                            Layout.preferredWidth: 50
-                            Layout.preferredHeight: 50
-
-                            flat: true
-                            toolTipText: "Post about Scrite on your Facebook page."
-                            icon.source: Runtime.themedIcon("qrc:/icons/action/share_on_facebook.png")
-
-                            onClicked: Qt.openUrlExternally("https://www.scrite.io?share_on_facebook")
-                        }
-
-                        SctToolButton {
-                            Layout.preferredWidth: 50
-                            Layout.preferredHeight: 50
-
-                            flat: true
-                            toolTipText: "Post about Scrite on your LinkedIn page."
-                            icon.source: Runtime.themedIcon("qrc:/icons/action/share_on_linkedin.png")
-
-                            onClicked: Qt.openUrlExternally("https://www.scrite.io?share_on_linkedin")
-                        }
-
-                        SctToolButton {
-                            Layout.preferredWidth: 50
-                            Layout.preferredHeight: 50
-
-                            flat: true
-                            toolTipText: "Tweet about Scrite from your handle."
-                            icon.source: Runtime.themedIcon("qrc:/icons/action/share_on_twitter.png")
-
-                            onClicked: Qt.openUrlExternally("https://www.scrite.io?share_on_twitter")
-                        }
-
-                        SctToolButton {
-                            readonly property string url: "mailto:?Subject=Take a look at Scrite&Body=I am using Scrite and I thought you should check it out as well. Visit https://www.scrite.io"
-
-                            Layout.preferredWidth: 50
-                            Layout.preferredHeight: 50
-
-                            flat: true
-                            toolTipText: "Send an email about Scrite."
-                            icon.source: Runtime.themedIcon("qrc:/icons/action/share_on_email.png")
-
-                            onClicked: Qt.openUrlExternally(url)
-                        }
-                    }
-                }
-
-                RowLayout {
-                    Layout.alignment: Qt.AlignHCenter
-
                     spacing: 20
 
                     SctButton {
@@ -344,10 +274,6 @@ DialogLauncher {
                         onClicked: Qt.openUrlExternally(Runtime.userGuidesUrl)
                     }
 
-                    SctButton {
-                        text: "Discord"
-                        onClicked: JoinDiscordCommunity.launch()
-                    }
                 }
             }
         }

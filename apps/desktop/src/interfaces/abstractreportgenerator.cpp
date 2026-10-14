@@ -16,8 +16,8 @@
 #include "abstractreportgenerator.h"
 
 #include "user.h"
-#include "scrite.h"
 #include "application.h"
+#include "scrite.h"
 #include "qtextdocumentpagedprinter.h"
 
 #include <QDir>
@@ -113,6 +113,9 @@ QIcon AbstractReportGenerator::icon() const
 
 bool AbstractReportGenerator::isFeatureEnabled() const
 {
+    if (Application::instance() && Application::instance()->isFOSSBuild())
+        return true;
+
     if (User::instance()->isLoggedIn()) {
         const bool allReportsEnabled = AppFeature::isEnabled(Scrite::ReportFeature);
         const bool thisSpecificImporterEnabled = allReportsEnabled
